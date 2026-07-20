@@ -32,7 +32,8 @@ Clone the repository and validate the specification:
 ```sh
 git clone https://github.com/mikaelweave/dev-machine-keeper.git
 cd dev-machine-keeper
-ruby scripts/validate_manifest.rb
+npm ci
+npm run validate
 ```
 
 Then ask a supported coding agent to audit the workstation against
@@ -55,7 +56,7 @@ Agent-specific files are optional, thin integrations:
 | `.github/copilot-instructions.md` | Optional GitHub Copilot integration |
 | `CLAUDE.md` | Optional Claude Code integration |
 | `AGENTS.md` | Optional OpenAI Codex integration |
-| `scripts/validate_manifest.rb` | YAML and local-reference validation |
+| `scripts/validate_manifest.js` | YAML and local-reference validation |
 | `.github/workflows/validate.yml` | Continuous validation |
 
 ## Safety boundaries
