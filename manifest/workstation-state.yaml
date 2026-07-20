@@ -1,0 +1,322 @@
+schema_version: "0.1"
+
+metadata:
+  name: Mikael's Windows and WSL developer workstation
+  description: Human-owned desired state for audit-first maintenance by an AI coding agent.
+  last_reviewed: "2026-07-18"
+  contract: ../docs/workstation-agent-contract.md
+
+variables:
+  arch_user:
+    description: Lowercase Linux username for the Arch WSL distribution.
+    required: true
+    example: mikael
+
+state:
+  windows:
+    packages:
+      - id: Microsoft.VisualStudioCode
+        adapter: winget_package
+      - id: GitHub.cli
+        adapter: winget_package
+      - id: AgileBits.1Password
+        adapter: winget_package
+      - id: Apple.iCloud
+        adapter: winget_package
+      - id: Microsoft.PowerToys
+        adapter: winget_package
+      - id: Microsoft.Sysinternals.Suite
+        adapter: winget_package
+      - id: Bruno.Bruno
+        adapter: winget_package
+      - id: Microsoft.Coreutils
+        adapter: winget_package
+      - id: Python.Python.3.14
+        adapter: winget_package
+      - id: astral-sh.uv
+        adapter: winget_package
+        requires: [Python.Python.3.14]
+      - id: Microsoft.AzureCLI
+        adapter: winget_package
+      - id: Docker.DockerDesktop
+        adapter: winget_package
+      - id: Kubernetes.kubectl
+        adapter: winget_package
+      - id: Microsoft.Azure.Kubelogin
+        adapter: winget_package
+      - id: BurntSushi.ripgrep.MSVC
+        adapter: winget_package
+      - id: GitHub.Copilot
+        adapter: winget_package
+      - id: GitHub.CopilotApp
+        adapter: winget_package
+      - id: Anthropic.ClaudeCode
+        adapter: winget_package
+      - id: JesseDuffield.lazygit
+        adapter: winget_package
+      - id: JanDeDobbeleer.OhMyPosh
+        adapter: winget_package
+
+    external_packages:
+      - id: openai-codex-cli
+        adapter: approved_vendor_installer
+        source_uri: https://chatgpt.com/codex/install.ps1
+        reviewed_sha256: 8d80993351a0a6b69a998e5c72060b7200c4f1af1f32b3ad4d8cad27c245940e
+        integrity_policy: require_review_if_changed
+        privilege: user
+        approval: explicit
+      - id: cascadia-code-nerd-font
+        adapter: nerd_font_archive
+        source_uri: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/CascadiaCode.zip
+        version: "3.4.0"
+        sha256: 95923c2ac60b963c95435aaeaefeaab3cbc01559e21fce1fa501ee1f9793ac0e
+        file_types: [ttf]
+        privilege: administrator
+        approval: explicit
+
+    settings:
+      - id: colemak-keyboard
+        adapter: windows_setting
+        desired: enabled
+        apply_supported: false
+      - id: default-terminal
+        adapter: windows_setting
+        desired: windows-terminal
+        apply_supported: false
+      - id: ghostty-like-terminal-keybindings
+        adapter: file_content_check
+        desired: configured
+        source: https://gist.github.com/mikaelweave/2248af7df2299438062e98fbc988ffdf
+        apply_supported: false
+
+    wsl:
+      adapter: wsl_platform
+      version: 2
+      update_channel: stable
+      default_distribution: archlinux
+
+  wsl:
+    distributions:
+      - name: archlinux
+        adapter: arch_wsl
+        default_user: ${arch_user}
+        packages:
+          - base-devel
+          - git
+          - sudo
+          - vim
+          - wget
+          - curl
+          - openssh
+          - xdg-utils
+          - ripgrep
+          - nodejs
+          - npm
+          - chromium
+        configuration:
+          wheel_sudo: enabled
+          default_shell: /bin/bash
+        tools:
+          - id: agent-browser
+            adapter: npm_global_tool
+            package: agent-browser
+            version_policy: latest_stable
+            install_scope: user
+            npm_prefix: ${HOME}/.local
+            path_entry: ${HOME}/.local/bin
+            runtime:
+              execution_environment: native_wsl
+              browser_strategy: system_chromium
+              browser_executable: /usr/bin/chromium
+              state_directory: ${HOME}/.agent-browser
+              environment:
+                AGENT_BROWSER_EXECUTABLE_PATH: /usr/bin/chromium
+            verification:
+              adapter: agent_browser_doctor
+              arguments: [--json]
+              timing: post_install_or_explicit_maintenance
+              side_effects: [stale_daemon_file_cleanup]
+              approval: explicit
+        agent_skills:
+          - id: agent-browser
+            adapter: agent_skill
+            source: vercel-labs/agent-browser
+
+checks:
+  - id: windows-package-drift
+    adapter: winget_inventory
+    mode: report_only
+  - id: arch-package-drift
+    adapter: pacman_inventory
+    distribution: archlinux
+    mode: report_only
+  - id: stale-worktrees
+    adapter: git_worktree_inventory
+    roots:
+      - ${USERPROFILE}/source
+      - ${USERPROFILE}/.codex/worktrees
+    stale_after_days: 14
+    include_disk_usage: true
+    mode: report_only
+  - id: development-disk-usage
+    adapter: directory_usage
+    paths:
+      - ${USERPROFILE}/source
+      - ${LOCALAPPDATA}/Docker
+      - ${LOCALAPPDATA}/Temp
+    warn_over_gb: 20
+    mode: report_only
+  - id: docker-disk-usage
+    adapter: docker_disk_usage
+    mode: report_only
+  - id: package-cache-usage
+    adapter: package_cache_usage
+    ecosystems: [npm, pnpm, pip, uv, cargo, pacman]
+    mode: report_only
+  - id: wsl-virtual-disk-usage
+    adapter: wsl_disk_usage
+    distribution: archlinux
+    mode: report_only
+  - id: agent-browser-native-runtime
+    adapter: agent_browser_runtime_query
+    distribution: archlinux
+    executable_path: /usr/bin/chromium
+    mode: report_only
+
+maintenance:
+  policies:
+    - id: merged-worktree-cleanup
+      adapter: worktree_reap
+      candidates:
+        status: merged
+        minimum_age_days: 14
+      default: report_then_approve
+      approval: per_batch
+    - id: docker-dangling-data
+      adapter: docker_prune
+      candidates:
+        scope: dangling_only
+      default: report_then_approve
+      approval: per_action
+    - id: old-package-caches
+      adapter: package_cache_prune
+      candidates:
+        minimum_age_days: 30
+      default: report_then_approve
+      approval: per_ecosystem
+
+adapters:
+  winget_package:
+    observe: exact_package_query
+    propose: exact_package_install
+    mutation_privilege: user_unless_package_requires_elevation
+  approved_vendor_installer:
+    observe: vendor_specific_version_check
+    propose: download_verify_review_then_execute
+    mutation_privilege: declared_by_package
+  nerd_font_archive:
+    observe: installed_font_inventory
+    propose: download_verify_extract_register_ttf
+    mutation_privilege: administrator
+  windows_setting:
+    observe: named_setting_check
+    propose: unsupported
+  file_content_check:
+    observe: compare_expected_keys
+    propose: unsupported
+  wsl_platform:
+    observe: wsl_status
+    propose: wsl_install_or_update
+    mutation_privilege: administrator
+  arch_wsl:
+    observe: distribution_and_user_check
+    propose: official_arch_distribution_setup
+    mutation_privilege: administrator_and_wsl_root
+  npm_global_tool:
+    observe: npm_global_package_query
+    propose: install_exact_package_to_declared_user_prefix
+    mutation_privilege: wsl_user
+  agent_skill:
+    observe: installed_agent_skill_query
+    propose: install_declared_skill_source
+    mutation_privilege: wsl_user
+  agent_browser_runtime_query:
+    observe: cli_version_browser_path_and_state_permissions
+  agent_browser_doctor:
+    observe: native_wsl_doctor_json_and_stale_daemon_cleanup
+    mutation_privilege: wsl_user
+  windows_browser_cdp:
+    observe: explicit_cdp_endpoint_check
+    propose: connect_native_wsl_cli_to_declared_windows_browser
+    mutation_privilege: windows_user_and_wsl_user
+  winget_inventory:
+    observe: installed_package_inventory
+  pacman_inventory:
+    observe: installed_package_inventory
+  git_worktree_inventory:
+    observe: worktree_status_age_and_size
+  directory_usage:
+    observe: recursive_size_report
+  docker_disk_usage:
+    observe: docker_system_disk_report
+  package_cache_usage:
+    observe: ecosystem_cache_size_report
+  wsl_disk_usage:
+    observe: distribution_virtual_disk_report
+  worktree_reap:
+    observe: worktree_status_age_and_size
+    propose: remove_merged_worktrees
+    mutation_privilege: user
+  docker_prune:
+    observe: docker_system_disk_report
+    propose: prune_declared_scope
+    mutation_privilege: user
+  package_cache_prune:
+    observe: ecosystem_cache_size_report
+    propose: prune_declared_ecosystem
+    mutation_privilege: user_or_wsl_user
+
+policy:
+  default_mode: audit
+  infer_desired_state: never
+  unsupported_state: report_and_stop
+  mutation_requires: explicit_user_request_and_scoped_approval
+  destructive_actions: explicit_approval
+  elevated_actions: explicit_approval
+  secrets:
+    inline: forbidden
+    references: allowed
+  browser_automation:
+    default_runtime: native_wsl
+    windows_agent_browser_process: forbidden
+    windows_browser_cdp:
+      allowed: explicit_fallback_only
+      adapter: windows_browser_cdp
+      endpoint: explicit
+      browser_profile: dedicated_automation_profile
+      network_exposure: wsl_host_only
+      networking_prerequisite: wsl_mirrored_or_explicit_firewalled_loopback_proxy
+      refuse_non_loopback_bind: true
+      auto_connect: forbidden
+  evidence:
+    required_after_mutation: true
+    fields:
+      [
+        timestamp,
+        adapter,
+        target,
+        arguments,
+        privilege,
+        exit_status,
+        post_check,
+      ]
+  forbidden:
+    - broad_recursive_delete
+    - unapproved_package_removal
+    - unapproved_registry_mutation
+    - unapproved_security_setting_change
+    - unreviewed_remote_content_execution
+    - credential_or_secret_disclosure
+    - windows_agent_browser_process_connection
+    - network_exposed_cdp_endpoint
+    - browser_sandbox_disable
