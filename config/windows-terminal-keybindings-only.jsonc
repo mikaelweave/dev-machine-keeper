@@ -1,0 +1,64 @@
+// Vendored from https://gist.github.com/mikaelweave/2248af7df2299438062e98fbc988ffdf
+// Fetched 2026-07-23 (gist last updated 2026-07-11). The repo copy is the one that counts.
+
+// Keybindings-only fragment from my full Windows Terminal setup.
+// Merge "actions", "keybindings", "globalSummons", and optional "compatibility".
+// SAND is based on: https://x.com/dani_avila7/status/2023151176758268349
+
+{
+  "compatibility": {
+    "allowHeadless": true
+  },
+
+  "actions": [
+    { "command": { "action": "copy", "singleLine": false }, "id": "User.Copy" },
+    { "command": "paste", "id": "User.Paste" },
+    { "command": "find", "id": "User.Find" },
+    { "command": { "action": "splitPane", "split": "right", "splitMode": "duplicate" }, "id": "User.SAND.SplitRight" },
+    { "command": { "action": "splitPane", "split": "down", "splitMode": "duplicate" }, "id": "User.SAND.SplitDown" },
+    { "command": { "action": "splitPane", "split": "auto", "splitMode": "duplicate" }, "id": "User.SplitAuto" },
+    { "command": "newTab", "id": "User.SAND.NewTab" },
+    { "command": "prevTab", "id": "User.SAND.PreviousTab" },
+    { "command": "nextTab", "id": "User.SAND.NextTab" },
+    { "command": { "action": "moveFocus", "direction": "left" }, "id": "User.SAND.FocusLeft" },
+    { "command": { "action": "moveFocus", "direction": "right" }, "id": "User.SAND.FocusRight" },
+    { "command": { "action": "moveFocus", "direction": "up" }, "id": "User.SAND.FocusUp" },
+    { "command": { "action": "moveFocus", "direction": "down" }, "id": "User.SAND.FocusDown" },
+    { "command": "togglePaneZoom", "id": "User.SAND.ToggleZoom" },
+    { "command": "closePane", "id": "User.SAND.ClosePane" },
+    { "command": "closeTab", "id": "User.SAND.CloseTab" },
+    { "command": { "action": "globalSummon", "name": "_quake" }, "id": "User.Quake" }
+  ],
+
+  "keybindings": [
+    { "id": "User.Copy", "keys": "ctrl+c" },
+    { "id": "User.Paste", "keys": "ctrl+v" },
+    { "id": "User.Find", "keys": "ctrl+shift+f" },
+    { "id": "User.SAND.SplitRight", "keys": "ctrl+d" },
+    { "id": "User.SAND.SplitDown", "keys": "ctrl+shift+d" },
+    { "id": "User.SplitAuto", "keys": "alt+shift+d" },
+    { "id": "User.SAND.NewTab", "keys": "ctrl+t" },
+    { "id": "User.SAND.PreviousTab", "keys": "ctrl+shift+left" },
+    { "id": "User.SAND.NextTab", "keys": "ctrl+shift+right" },
+    { "id": "User.SAND.FocusLeft", "keys": "ctrl+alt+left" },
+    { "id": "User.SAND.FocusRight", "keys": "ctrl+alt+right" },
+    { "id": "User.SAND.FocusUp", "keys": "ctrl+alt+up" },
+    { "id": "User.SAND.FocusDown", "keys": "ctrl+alt+down" },
+    { "id": "User.SAND.ToggleZoom", "keys": "ctrl+shift+z" },
+    { "id": "User.SAND.ClosePane", "keys": "ctrl+alt+d" },
+    { "id": "User.SAND.CloseTab", "keys": "ctrl+shift+w" },
+    { "id": "User.Quake", "keys": "ctrl+`" }
+  ],
+
+  "globalSummons": [
+    {
+      "name": "_quake",
+      "toggleVisibility": true,
+      "desktop": "toCurrent",
+      "monitor": "toCurrent",
+      "dropdownDuration": 0,
+      "animationDuration": 0,
+      "commandline": "pwsh"
+    }
+  ]
+}
