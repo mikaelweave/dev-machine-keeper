@@ -1,0 +1,103 @@
+# What I want on this machine, and the order to install it in.
+# Read docs/contract.md before touching anything.
+#
+# Install top to bottom. The order is deliberate: WSL before the distro,
+# pacman's nodejs before the npm globals, Python before uv.
+#
+# Nothing here is pinned to a version. This gets used when a laptop dies,
+# which might be years from now, and by then you want current software.
+
+machine: Windows 11 + Arch Linux on WSL 2
+reviewed: 2026-07-23
+
+windows:
+  # Exact winget ids. Never fuzzy-match or substitute a similar package.
+  winget:
+    # editor, shell, terminal tools
+    - Microsoft.VisualStudioCode
+    - JanDeDobbeleer.OhMyPosh
+    - Microsoft.PowerToys
+    - Microsoft.Sysinternals.Suite
+    - Microsoft.Coreutils
+    - BurntSushi.ripgrep.MSVC
+
+    # git and coding agents
+    - GitHub.cli
+    - JesseDuffield.lazygit
+    - Anthropic.ClaudeCode
+    - GitHub.Copilot
+    - GitHub.CopilotApp
+
+    # cloud and containers
+    - Microsoft.AzureCLI
+    - Docker.DockerDesktop
+    - Kubernetes.kubectl
+    - Microsoft.Azure.Kubelogin
+
+    # languages
+    - Python.Python.3
+    - astral-sh.uv          # after Python
+
+    # the rest
+    - AgileBits.1Password
+    - Apple.iCloud
+    - Bruno.Bruno
+
+  # Not in winget. These download and run code from the internet —
+  # show me the script before you run it.
+  downloads:
+    - name: openai-codex-cli
+      url: https://chatgpt.com/codex/install.ps1
+      run_as: user
+
+    - name: cascadia-code-nerd-font
+      url: https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip
+      install: extract the .ttf files and register them
+      run_as: administrator
+
+  # I do these myself. Show me the steps and wait.
+  by_hand:
+    - Colemak keyboard. Settings > Time & language > Language & region >
+      English > Language options > Add a keyboard > US Colemak.
+      Then remove US QWERTY.
+
+    - Windows Terminal as the default. Settings > Privacy & security >
+      For developers > Terminal > Windows Terminal.
+
+    - Terminal config. Open Windows Terminal, press Ctrl+Shift+, to open
+      settings.json, back up what's there, then replace it with
+      config/windows-terminal-settings.jsonc. That gives portable profile
+      defaults, Ghostty-style SAND keybindings, and a Quake dropdown on
+      Ctrl+`. To keep an existing setup instead, merge in
+      config/windows-terminal-keybindings-only.jsonc.
+
+wsl:
+  version: 2
+  default_distribution: archlinux
+
+  archlinux:
+    user: mikael
+    shell: /bin/bash
+    sudo: wheel group
+
+    pacman:
+      - base-devel
+      - git
+      - sudo
+      - vim
+      - wget
+      - curl
+      - openssh
+      - xdg-utils
+      - ripgrep
+      - nodejs
+      - npm
+      - chromium
+
+    # Installed under ~/.local so they never need root.
+    npm:
+      - agent-browser       # headless, needs pacman's nodejs, npm, and chromium
+                            # set AGENT_BROWSER_EXECUTABLE_PATH=/usr/bin/chromium
+
+    claude_skills:
+      - vercel-labs/agent-browser

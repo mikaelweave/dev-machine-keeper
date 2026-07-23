@@ -1,0 +1,106 @@
+// Vendored from https://gist.github.com/mikaelweave/2248af7df2299438062e98fbc988ffdf
+// Fetched 2026-07-23 (gist last updated 2026-07-11). The repo copy is the one that counts.
+
+// Portable Windows Terminal baseline: profile defaults, SAND keybindings, and dropdown terminal.
+// Windows Terminal generates machine-specific profiles automatically, so this file intentionally
+// leaves profiles.list empty and selects PowerShell by its portable profile name instead of a GUID.
+
+{
+  "$help": "https://aka.ms/terminal-documentation",
+  "$schema": "https://aka.ms/terminal-profiles-schema",
+  "defaultProfile": "PowerShell",
+
+  // Window and interaction defaults
+  "copyFormatting": "none",
+  "copyOnSelect": false,
+  "launchMode": "maximized",
+  "tabWidthMode": "titleLength",
+  "theme": "system",
+
+  // Helps globalSummon work reliably across Windows Terminal versions.
+  "compatibility": {
+    "allowHeadless": true
+  },
+
+  // These defaults apply to PowerShell, WSL, Command Prompt, and other generated profiles.
+  "profiles": {
+    "defaults": {
+      "colorScheme": "One Half Dark",
+      "cursorShape": "bar",
+      "font": {
+        "face": "Cascadia Mono",
+        "size": 11
+      },
+      "opacity": 95,
+      "padding": "8",
+      "startingDirectory": "%USERPROFILE%",
+      "useAcrylic": true
+    },
+    "list": []
+  },
+
+  "schemes": [],
+
+  "actions": [
+    // Clipboard / Find
+    { "command": { "action": "copy", "singleLine": false }, "id": "User.Copy" },
+    { "command": "paste", "id": "User.Paste" },
+    { "command": "find", "id": "User.Find" },
+
+    // S — Split
+    { "command": { "action": "splitPane", "split": "right", "splitMode": "duplicate" }, "id": "User.SAND.SplitRight" },
+    { "command": { "action": "splitPane", "split": "down", "splitMode": "duplicate" }, "id": "User.SAND.SplitDown" },
+    { "command": { "action": "splitPane", "split": "auto", "splitMode": "duplicate" }, "id": "User.SplitAuto" },
+
+    // A — Across tabs
+    { "command": "newTab", "id": "User.SAND.NewTab" },
+    { "command": "prevTab", "id": "User.SAND.PreviousTab" },
+    { "command": "nextTab", "id": "User.SAND.NextTab" },
+
+    // N — Navigate panes
+    { "command": { "action": "moveFocus", "direction": "left" }, "id": "User.SAND.FocusLeft" },
+    { "command": { "action": "moveFocus", "direction": "right" }, "id": "User.SAND.FocusRight" },
+    { "command": { "action": "moveFocus", "direction": "up" }, "id": "User.SAND.FocusUp" },
+    { "command": { "action": "moveFocus", "direction": "down" }, "id": "User.SAND.FocusDown" },
+    { "command": "togglePaneZoom", "id": "User.SAND.ToggleZoom" },
+
+    // D — Destroy panes and tabs
+    { "command": "closePane", "id": "User.SAND.ClosePane" },
+    { "command": "closeTab", "id": "User.SAND.CloseTab" },
+
+    // Quake-style dropdown
+    { "command": { "action": "globalSummon", "name": "_quake" }, "id": "User.Quake" }
+  ],
+
+  "keybindings": [
+    { "id": "User.Copy", "keys": "ctrl+c" },
+    { "id": "User.Paste", "keys": "ctrl+v" },
+    { "id": "User.Find", "keys": "ctrl+shift+f" },
+    { "id": "User.SAND.SplitRight", "keys": "ctrl+d" },
+    { "id": "User.SAND.SplitDown", "keys": "ctrl+shift+d" },
+    { "id": "User.SplitAuto", "keys": "alt+shift+d" },
+    { "id": "User.SAND.NewTab", "keys": "ctrl+t" },
+    { "id": "User.SAND.PreviousTab", "keys": "ctrl+shift+left" },
+    { "id": "User.SAND.NextTab", "keys": "ctrl+shift+right" },
+    { "id": "User.SAND.FocusLeft", "keys": "ctrl+alt+left" },
+    { "id": "User.SAND.FocusRight", "keys": "ctrl+alt+right" },
+    { "id": "User.SAND.FocusUp", "keys": "ctrl+alt+up" },
+    { "id": "User.SAND.FocusDown", "keys": "ctrl+alt+down" },
+    { "id": "User.SAND.ToggleZoom", "keys": "ctrl+shift+z" },
+    { "id": "User.SAND.ClosePane", "keys": "ctrl+alt+d" },
+    { "id": "User.SAND.CloseTab", "keys": "ctrl+shift+w" },
+    { "id": "User.Quake", "keys": "ctrl+`" }
+  ],
+
+  "globalSummons": [
+    {
+      "name": "_quake",
+      "toggleVisibility": true,
+      "desktop": "toCurrent",
+      "monitor": "toCurrent",
+      "dropdownDuration": 0,
+      "animationDuration": 0,
+      "commandline": "pwsh"
+    }
+  ]
+}
